@@ -20,6 +20,8 @@ public class PlayerMovement : MonoBehaviour
     private float _playerMouseDistance = 3;
     private float _interpolateAngleSpeed = 0.15f;
 
+    private Collider2D _usePortal;
+
     // Update is called once per frame
   void Update()
     {
@@ -27,6 +29,12 @@ public class PlayerMovement : MonoBehaviour
         movement.y = Input.GetAxisRaw("Vertical");
 
         mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
+
+      if(Input.GetKeyDown(KeyCode.Space))
+      {
+         if(_usePortal != null)
+          _usePortal.GetComponent<PortalChangeScene>().loadNextScene();
+    }
     }
 
     void FixedUpdate()
@@ -59,4 +67,22 @@ public class PlayerMovement : MonoBehaviour
     {
       return startAngle + interpolateValue * (angle - startAngle);
     }
+
+  private void OnTriggerEnter2D(Collider2D other)
+  {
+
+    if(other.tag.Equals("Portal"))
+    {
+      _usePortal = other;
+    }
+  }
+
+  private void OnTriggerExit2D(Collider2D other)
+  {
+    if (other.tag.Equals("Portal"))
+    {
+      _usePortal = null;
+    }
+  }
+
 }
