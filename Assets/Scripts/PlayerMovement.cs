@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,8 +17,11 @@ public class PlayerMovement : MonoBehaviour
     Vector2 mousePos;
     public Position playerPos;
 
+    private float _playerMouseDistance = 3;
+    private float _interpolateAngleSpeed = 0.15f;
+
     // Update is called once per frame
-    void Update()
+  void Update()
     {
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
@@ -35,17 +39,24 @@ public class PlayerMovement : MonoBehaviour
         // angle approach
 
         // rb.rotation = angleApproach(rb.rotation);
-        rb.rotation = angle;
+        rb.rotation = LearpAngle(rb.rotation, angle, _interpolateAngleSpeed);
         var mouseDir = mousePos - rb.position;
 
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && Mathf.Abs(Vector3.Distance(mousePos, transform.position)) > _playerMouseDistance)
         {
             rb.AddForce(mouseDir * clickForce);
+        }else {
+          rb.velocity = Vector2.zero;
         }
     
         /*  if (Vector3.Magnitude(transform.position - new Vector3 (mousePos.x, mousePos.y, 0)) < 6) 
         {
             rb.velocity = Vector2.zero; 
         }*/
+    }
+
+    private float LearpAngle(float startAngle, float angle, float interpolateValue)
+    {
+      return startAngle + interpolateValue * (angle - startAngle);
     }
 }
