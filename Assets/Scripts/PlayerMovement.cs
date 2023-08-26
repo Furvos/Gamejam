@@ -16,8 +16,10 @@ public class PlayerMovement : MonoBehaviour
     Vector2 mousePos;
     public Position playerPos;
 
+    private float _playerMouseDistance = 3;
+
     // Update is called once per frame
-    void Update()
+  void Update()
     {
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
@@ -38,9 +40,11 @@ public class PlayerMovement : MonoBehaviour
         rb.rotation = angle;
         var mouseDir = mousePos - rb.position;
 
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && Mathf.Abs(Vector3.Distance(mousePos, transform.position)) > _playerMouseDistance)
         {
             rb.AddForce(mouseDir * clickForce);
+        }else {
+          rb.velocity = Vector2.zero;
         }
     
         /*  if (Vector3.Magnitude(transform.position - new Vector3 (mousePos.x, mousePos.y, 0)) < 6) 
