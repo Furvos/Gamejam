@@ -6,12 +6,16 @@ using UnityEngine.UIElements;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f;
     public Rigidbody2D rb;
     public Camera cam;
-    public int clickForce = 200;
+    public float clickForce = 1;
     public Position objPos;
     public float turnSpeed = 5f;
+
+    public float dashMultiplier = 1f;
+    public float dashSpeed = 2;
+    public float dashDuration = 0.2f;
+    private float dashTimer;
 
     Vector2 movement;
     Vector2 mousePos;
@@ -20,42 +24,58 @@ public class PlayerMovement : MonoBehaviour
     private float _playerMouseDistance = 3;
     private float _interpolateAngleSpeed = 0.15f;
 
-    private Collider2D _usePortal;
-
     // Update is called once per frame
-  void Update()
+
+    void StartDash()
+    {
+        dashMultiplier = dashSpeed;
+        dashTimer = dashDuration;
+    }
+
+    void Update()
     {
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
 
         mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
 
-      if(Input.GetKeyDown(KeyCode.Space))
-      {
-         if(_usePortal != null)
-          _usePortal.GetComponent<PortalChangeScene>().loadNextScene();
+        HandleDash();
     }
+
+    private void HandleDash()
+    {
+        if (Input.GetButtonDown("Jump"))
+        {
+            StartDash();
+        }
+
+        if (dashTimer > 0)
+        {
+            dashTimer -= Time.deltaTime;
+            if(dashTimer < 0)
+            {
+                dashTimer = 0;
+                dashMultiplier = 1;
+            }
+        }
     }
 
     void FixedUpdate()
     {
-        rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
-
         Vector2 lookDir = mousePos - rb.position;
         float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg -90f;
-        // rotação aproximar gradualmente
-        // angle approach
 
-        // rb.rotation = angleApproach(rb.rotation);
         rb.rotation = LearpAngle(rb.rotation, angle, _interpolateAngleSpeed);
-        var mouseDir = mousePos - rb.position;
+        var mouseDir = (mousePos - rb.position).normalized;
 
         if (Input.GetMouseButton(0) && Mathf.Abs(Vector3.Distance(mousePos, transform.position)) > _playerMouseDistance)
         {
-            rb.AddForce(mouseDir * clickForce);
+            rb.MovePosition(rb.position + mouseDir * clickForce * dashMultiplier);
+            //rb.AddForce(mouseDir * clickForce * dashMultiplier);
         }else {
           rb.velocity = Vector2.zero;
         }
+
     
         /*  if (Vector3.Magnitude(transform.position - new Vector3 (mousePos.x, mousePos.y, 0)) < 6) 
         {
@@ -67,22 +87,4 @@ public class PlayerMovement : MonoBehaviour
     {
       return startAngle + interpolateValue * (angle - startAngle);
     }
-
-  private void OnTriggerEnter2D(Collider2D other)
-  {
-
-    if(other.tag.Equals("Portal"))
-    {
-      _usePortal = other;
-    }
-  }
-
-  private void OnTriggerExit2D(Collider2D other)
-  {
-    if (other.tag.Equals("Portal"))
-    {
-      _usePortal = null;
-    }
-  }
-
 }
